@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>碳足迹字典 · 总量二维码</title>
+  <!-- Google Fonts & Font Awesome 6 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- QRCode.js 轻量库 -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(145deg, #e0f2e9 0%, #c8e6df 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: -10%;
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(circle, rgba(165, 214, 167, 0.4) 0%, rgba(200, 230, 201, 0) 70%);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -15%;
+      right: -10%;
+      width: 70%;
+      height: 70%;
+      background: radial-gradient(circle, rgba(129, 199, 132, 0.3) 0%, rgba(200, 230, 201, 0) 70%);
+      border-radius: 50%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .dict-card {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(14px);
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 32, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.02);
+      padding: 2rem 2rem 2.2rem;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .dict-card:hover {
+      box-shadow: 0 30px 50px -18px rgba(40, 90, 40, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .icon-wrapper {
+      background: linear-gradient(135deg, #2e7d32, #1b5e20);
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2rem;
+      box-shadow: 0 12px 18px -8px rgba(30, 70, 30, 0.3);
+    }
+
+    .icon-wrapper i {
+      font-size: 3.2rem;
+      color: white;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(120deg, #1f4f2b, #2e7d32);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+      margin-bottom: 0.3rem;
+    }
+
+    .sub {
+      color: #4a6741;
+      font-weight: 500;
+      font-size: 0.9rem;
+      background: rgba(100, 140, 80, 0.15);
+      display: inline-block;
+      padding: 0.25rem 1rem;
+      border-radius: 40px;
+      backdrop-filter: blur(2px);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section {
+      margin: 1.5rem 0 1rem;
+    }
+
+    .fields-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .fields-header label {
+      font-weight: 600;
+      color: #1f4a2a;
+      background: rgba(70, 100, 60, 0.1);
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+    }
+
+    .btn-add {
+      background: rgba(46, 125, 50, 0.12);
+      border: 1px solid rgba(46, 125, 50, 0.3);
+      color: #1e5a2a;
+      padding: 0.45rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-add i {
+      font-size: 0.9rem;
+    }
+
+    .btn-add:hover {
+      background: #2e7d32;
+      color: white;
+      border-color: #2e7d32;
+      transform: scale(0.97);
+    }
+
+    .fields-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 0.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .field-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.7rem;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(2px);
+      padding: 0.7rem 1rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(70, 110, 60, 0.2);
+      transition: all 0.2s;
+    }
+
+    .field-row:hover {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(70, 130, 70, 0.4);
+    }
+
+    .field-key {
+      flex: 1.2;
+      min-width: 100px;
+    }
+
+    .field-value {
+      flex: 2;
+      min-width: 140px;
+    }
+
+    .field-row input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(60, 90, 50, 0.25);
+      background: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .field-row input:focus {
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+    }
+
+    .btn-delete {
+      background: rgba(200, 70, 70, 0.1);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 40px;
+      color: #b93e3e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover {
+      background: #e57373;
+      color: white;
+      transform: scale(0.94);
+    }
+
+    .action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0 1rem;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 150px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0.9rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 60px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      background: white;
+      color: #2e5c2a;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .btn-primary {
+      background: linear-gradient(105deg, #2e7d32, #1f5e23);
+      color: white;
+      box-shadow: 0 8px 18px -6px #1f5e2360;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(105deg, #1f5e23, #154f19);
+      transform: scale(1.02);
+      box-shadow: 0 12px 20px -10px #1b4e1f;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(60, 100, 50, 0.3);
+      color: #1e4a2a;
+    }
+
+    .btn-secondary:hover {
+      background: white;
+      border-color: #2e7d32;
+      transform: scale(1.02);
+      box-shadow: 0 8px 16px -8px rgba(30, 80, 30, 0.2);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .qrcode-area {
+      text-align: center;
+      margin-top: 1.8rem;
+      padding-top: 0.8rem;
+      border-top: 1px dashed rgba(70, 110, 60, 0.3);
+    }
+
+    .qrcode-canvas-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0 0.8rem;
+    }
+
+    canvas {
+      background: white;
+      padding: 12px;
+      border-radius: 28px;
+      box-shadow: 0 12px 22px -12px rgba(0, 0, 0, 0.2);
+      max-width: 100%;
+      height: auto;
+      width: 200px;
+      height: 200px;
+    }
+
+    .sum-preview {
+      background: rgba(70, 100, 60, 0.15);
+      padding: 0.7rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1a4a1f;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .sum-preview i {
+      margin-right: 8px;
+    }
+
+    .tip-note {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #5a7c50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .fields-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .fields-container::-webkit-scrollbar-track {
+      background: rgba(70, 100, 60, 0.1);
+      border-radius: 10px;
+    }
+
+    .fields-container::-webkit-scrollbar-thumb {
+      background: #2e7d32;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 560px) {
+      .dict-card {
+        padding: 1.5rem;
+      }
+      .field-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-delete {
+        align-self: flex-end;
+        width: 32px;
+        height: 32px;
+      }
+      .action-group .btn {
+        min-width: 130px;
+        padding: 0.7rem 1rem;
+      }
+      .icon-wrapper {
+        width: 65px;
+        height: 65px;
+      }
+      .icon-wrapper i {
+        font-size: 2.5rem;
+      }
+      h1 {
+        font-size: 1.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="dict-card">
+  <div class="icon-wrapper">
+    <i class="fas fa-cloud-sun"></i>
+  </div>
+  <h1>碳足迹 · 总量二维码</h1>
+  <div class="sub">
+    <i class="fas fa-chart-line"></i> 字典数值总和 → 总量:A kg CO₂e
+  </div>
+
+  <div class="form-section">
+    <div class="fields-header">
+      <label><i class="fas fa-layer-group"></i> 碳排放项 (值必须为数字，单位kg CO₂e)</label>
+      <button type="button" class="btn-add" id="addFieldBtn">
+        <i class="fas fa-plus-circle"></i> 添加字段
+      </button>
+    </div>
+    <div class="fields-container" id="fieldsContainer">
+      <!-- 动态行 -->
+    </div>
+  </div>
+
+  <div class="action-group">
+    <button class="btn btn-primary" id="generateQRBtn">
+      <i class="fas fa-qrcode"></i> 生成二维码
+    </button>
+    <button class="btn btn-secondary" id="downloadQRBtn">
+      <i class="fas fa-download"></i> 下载二维码
+    </button>
+  </div>
+
+  <div class="qrcode-area">
+    <div class="qrcode-canvas-wrapper">
+      <canvas id="qrCanvas" width="240" height="240" style="width: 200px; height: 200px;"></canvas>
+    </div>
+    <div id="sumPreview" class="sum-preview">
+      <i class="fas fa-chart-simple"></i> 当前总量: —— kg CO₂e
+    </div>
+  </div>
+</div>
+
+<script>
+  // DOM 元素
+  const fieldsContainer = document.getElementById('fieldsContainer');
+  const addFieldBtn = document.getElementById('addFieldBtn');
+  const generateQRBtn = document.getElementById('generateQRBtn');
+  const downloadQRBtn = document.getElementById('downloadQRBtn');
+  const qrCanvas = document.getElementById('qrCanvas');
+  const sumPreviewDiv = document.getElementById('sumPreview');
+
+  // 辅助：计算所有有效数字值的总和（非空且为有效数字）
+  function computeTotalSum() {
+    const rows = document.querySelectorAll('.field-row');
+    let total = 0;
+    let validCount = 0;
+    const errors = [];
+    rows.forEach((row, idx) => {
+      const valueInput = row.querySelector('.field-value-input');
+      if (valueInput) {
+        const rawValue = valueInput.value.trim();
+        if (rawValue === "") return;
+        const num = Number(rawValue);
+        if (isNaN(num)) {
+          errors.push(`第${idx+1}行值“${rawValue}”不是有效数字`);
+        } else {
+          total += num;
+          validCount++;
+        }
+      }
+    });
+    return { total, validCount, errors };
+  }
+
+  // 格式化总和显示（保留合适小数）
+  function formatTotal(total) {
+    if (Number.isInteger(total)) return total.toString();
+    // 保留最多4位小数，去掉末尾无意义的0
+    return parseFloat(total.toFixed(4)).toString();
+  }
+
+  // 更新预览区显示总和（纯显示，不生成二维码）
+  function updateSumPreview() {
+    const { total, validCount, errors } = computeTotalSum();
+    if (validCount === 0) {
+      sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: <span style="color:#b34e4e;">无有效数据</span><span style="font-size:0.75rem; margin-left:6px;">(请填写至少一个数字)</span>`;
+      return null;
+    } else {
+      const formatted = formatTotal(total);
+      sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: <strong style="font-size:1.2rem;">${formatted}</strong> kg CO₂e`;
+      return total;
+    }
+  }
+
+  // 获取验证后的总和，若无有效数字则返回null并弹警告
+  function getValidatedTotal() {
+    const { total, validCount, errors } = computeTotalSum();
+    if (validCount === 0) {
+      alert('⚠️ 至少需要一个有效的数字值！\n请填写数字（整数或小数），不能全为空或非数字。');
+      return null;
+    }
+    if (errors.length > 0) {
+      alert(`发现无效数字：\n${errors.join('\n')}\n\n有效数字部分已计算总和，请修正非数字项。`);
+    }
+    return total;
+  }
+
+  // 生成二维码：内容为 "总量:A kg CO₂e"
+  async function generateQRCodeWithTotal() {
+    const total = getValidatedTotal();
+    if (total === null) return false;
+    // 格式化总和，保留合理精度
+    const formattedTotal = formatTotal(total);
+    const qrContent = `总量:${formattedTotal} kg CO₂e`;
+    // 更新预览区，明确显示即将编码的内容
+    sumPreviewDiv.innerHTML = `<i class="fas fa-qrcode"></i> 二维码内容: <strong style="font-size:1rem;">${qrContent}</strong>`;
+    try {
+      await new Promise((resolve, reject) => {
+        QRCode.toCanvas(qrCanvas, qrContent, { width: 240, margin: 2 }, (error) => {
+          if (error) reject(error);
+          else resolve();
+        });
+      });
+      qrCanvas.dataset.validContent = qrContent;
+      return true;
+    } catch (err) {
+      console.error(err);
+      alert('二维码生成失败，请检查内容长度或刷新重试');
+      return false;
+    }
+  }
+
+  // 下载二维码
+  function downloadQR() {
+    let hasValid = false;
+    if (qrCanvas.dataset.validContent) {
+      hasValid = true;
+    } else {
+      // 粗略检查canvas是否有内容
+      try {
+        const ctx = qrCanvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 10) {
+          if (data[i] < 200 || data[i+1] < 200 || data[i+2] < 200) {
+            hasValid = true;
+            break;
+          }
+        }
+      } catch(e) {}
+    }
+    if (!hasValid) {
+      alert('还没有生成二维码，请先点击「生成二维码」按钮！');
+      return;
+    }
+    try {
+      const dataURL = qrCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      const timestamp = new Date().getTime();
+      let suffix = qrCanvas.dataset.validContent ? qrCanvas.dataset.validContent.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_').slice(0, 30) : 'carbon';
+      link.download = `qrcode_${suffix}_${timestamp}.png`;
+      link.href = dataURL;
+      link.click();
+    } catch (err) {
+      alert('下载失败，可尝试截图保存');
+    }
+  }
+
+  // ---------- 动态表单管理 ----------
+  function createFieldRow(keyVal = '', valueVal = '') {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'field-row';
+    
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.placeholder = '排放源';
+    keyInput.className = 'field-key';
+    keyInput.value = keyVal;
+    
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.placeholder = '碳排放量 (kg CO₂e)';
+    valueInput.className = 'field-value-input';
+    valueInput.value = valueVal;
+    
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'btn-delete';
+    delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+    delBtn.setAttribute('aria-label', '删除字段');
+    
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      rowDiv.remove();
+      // 更新总和预览，并清除已有的二维码标记
+      updateSumPreview();
+      qrCanvas.dataset.validContent = '';
+      const ctx = qrCanvas.getContext('2d');
+      ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      const hasValid = updateSumPreview();
+      if (!hasValid && hasValid !== null) {
+        sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: —— kg CO₂e`;
+      }
+    });
+    
+    const onInputChange = () => {
+      const total = updateSumPreview(); // 更新显示总和
+      qrCanvas.dataset.validContent = '';
+      const ctx = qrCanvas.getContext('2d');
+      ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      // 如果总和有效，预览区已经更新；否则显示占位符
+      if (total === undefined || total === null) {
+        const { validCount } = computeTotalSum();
+        if (validCount === 0) {
+          sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: <span style="color:#b34e4e;">无有效数据</span>`;
+        }
+      }
+    };
+    
+    keyInput.addEventListener('input', onInputChange);
+    valueInput.addEventListener('input', onInputChange);
+    
+    rowDiv.appendChild(keyInput);
+    rowDiv.appendChild(valueInput);
+    rowDiv.appendChild(delBtn);
+    
+    return rowDiv;
+  }
+  
+  function initDefaultRows() {
+    fieldsContainer.innerHTML = '';
+    const firstRow = createFieldRow('', '');
+    fieldsContainer.appendChild(firstRow);
+    updateSumPreview();
+    const ctx = qrCanvas.getContext('2d');
+    ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+    qrCanvas.dataset.validContent = '';
+  }
+  
+  function addNewRow() {
+    const newRow = createFieldRow('', '');
+    fieldsContainer.appendChild(newRow);
+    updateSumPreview();
+    qrCanvas.dataset.validContent = '';
+    const ctx = qrCanvas.getContext('2d');
+    ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+  }
+  
+  // 绑定事件
+  addFieldBtn.addEventListener('click', addNewRow);
+  generateQRBtn.addEventListener('click', async () => {
+    await generateQRCodeWithTotal();
+  });
+  downloadQRBtn.addEventListener('click', downloadQR);
+  
+  // 快捷键 Ctrl+Enter 生成
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      generateQRCodeWithTotal();
+    }
+  });
+  
+  // 启动
+  initDefaultRows();
+  console.log('✅ 碳足迹总量二维码工具已启动 | 二维码格式: "总量:A kg CO₂e"');
+</script>
+</body>
+</html>
