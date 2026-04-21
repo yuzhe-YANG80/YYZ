@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>冰蓝碳迹 · 总量二维码</title>
+  <title>冰蓝碳迹 · 明细二维码</title>
   <!-- Google Fonts & Font Awesome 6 -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- QRCode.js -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
+    /* 保持原有冰蓝风格 */
     * {
       margin: 0;
       padding: 0;
@@ -28,7 +29,6 @@
       color: #0b2b4a;
     }
 
-    /* 清凉极光浮动光晕 */
     body::before {
       content: '';
       position: fixed;
@@ -64,7 +64,6 @@
       100% { transform: translate(-3%, 2%) scale(1.05); opacity: 0.85; }
     }
 
-    /* 主卡片 — 冰蓝玻璃质感 */
     .dict-card {
       position: relative;
       z-index: 10;
@@ -87,7 +86,6 @@
       transform: translateY(-6px);
     }
 
-    /* 返回按钮 — 冰晶小标 */
     .back-home {
       position: absolute;
       top: 1rem;
@@ -124,7 +122,6 @@
       color: #02457a;
     }
 
-    /* 图标区 — 深海冷蓝渐变 */
     .icon-wrapper {
       background: linear-gradient(145deg, #0a4c7e, #1e6ab3);
       width: 86px;
@@ -177,7 +174,6 @@
       margin-right: 4px;
     }
 
-    /* 表单区域 */
     .form-section {
       margin: 1.2rem 0 0.8rem;
     }
@@ -311,7 +307,6 @@
       transform: scale(0.92);
     }
 
-    /* 操作按钮组 */
     .action-group {
       display: flex;
       flex-wrap: wrap;
@@ -375,7 +370,6 @@
       transform: scale(0.97);
     }
 
-    /* 二维码区域 */
     .qrcode-area {
       text-align: center;
       margin-top: 2rem;
@@ -400,27 +394,6 @@
       height: 200px;
     }
 
-    .sum-preview {
-      background: rgba(0, 140, 255, 0.08);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      padding: 0.75rem 1.5rem;
-      border-radius: 3rem;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #02457a;
-      display: inline-block;
-      margin-top: 0.5rem;
-      border: 0.5px solid rgba(70, 170, 255, 0.25);
-      box-shadow: inset 0 1px 4px white;
-    }
-
-    .sum-preview i {
-      margin-right: 8px;
-      color: #1e88e5;
-    }
-
-    /* 滚动条冰蓝风格 */
     .fields-container::-webkit-scrollbar {
       width: 5px;
     }
@@ -435,7 +408,6 @@
       border-radius: 10px;
     }
 
-    /* 装饰小雪花（新奇） */
     .snowflake-deco {
       position: absolute;
       color: rgba(255, 255, 255, 0.2);
@@ -444,7 +416,6 @@
       z-index: 1;
     }
 
-    /* 响应式 */
     @media (max-width: 560px) {
       .dict-card {
         padding: 1.8rem 1.2rem 2rem;
@@ -493,12 +464,10 @@
   </style>
 </head>
 <body>
-  <!-- 纯装饰冰晶 -->
   <div class="snowflake-deco" style="top: 10%; left: 6%; font-size: 2rem; opacity: 0.25;">❄️</div>
   <div class="snowflake-deco" style="bottom: 12%; right: 8%; font-size: 2.4rem; opacity: 0.2;">❄️</div>
 
   <div class="dict-card">
-    <!-- 左上角返回按钮（链接不变） -->
     <a href="https://yuzhe-yang80.github.io/333/" class="back-home" target="_self">
       <i class="fas fa-arrow-left"></i> 返回
     </a>
@@ -506,18 +475,19 @@
     <div class="icon-wrapper">
       <i class="fas fa-cloud-sun"></i>
     </div>
-    <h1>蔬果溯源~二维码</h1>
+    <h1>碳足迹 · 明细二维码</h1>
+    <div class="sub">
+      <i class="fas fa-list-ul"></i> 排放源及数值 · 无总量
+    </div>
 
     <div class="form-section">
       <div class="fields-header">
-        <label><i class="fas fa-layer-group"></i> </label>
+        <label><i class="fas fa-layer-group"></i> 碳排放项 (值必须为数字，单位kg CO₂e)</label>
         <button type="button" class="btn-add" id="addFieldBtn">
           <i class="fas fa-plus-circle"></i> 添加字段
         </button>
       </div>
-      <div class="fields-container" id="fieldsContainer">
-        <!-- 动态行会由JS插入 -->
-      </div>
+      <div class="fields-container" id="fieldsContainer"></div>
     </div>
 
     <div class="action-group">
@@ -533,95 +503,68 @@
       <div class="qrcode-canvas-wrapper">
         <canvas id="qrCanvas" width="240" height="240" style="width: 200px; height: 200px;"></canvas>
       </div>
-      <div id="sumPreview" class="sum-preview">
-      </div>
+      <!-- 预览区已完全移除 -->
     </div>
   </div>
 
   <script>
     (function(){
-      console.log('❄️🌊 冰蓝碳迹 · 总量二维码 | 二维码格式: "总量:A kg CO₂e"');
-      console.log('%c💧 清凉新奇 · 玻璃态 · 极光蓝', 'background: #0a4c7e; color: #b3e4ff; padding: 2px 8px; border-radius: 20px;');
+      console.log('❄️🌊 冰蓝碳迹 · 明细二维码（无预览区）');
     })();
 
-    // DOM 元素
     const fieldsContainer = document.getElementById('fieldsContainer');
     const addFieldBtn = document.getElementById('addFieldBtn');
     const generateQRBtn = document.getElementById('generateQRBtn');
     const downloadQRBtn = document.getElementById('downloadQRBtn');
     const qrCanvas = document.getElementById('qrCanvas');
-    const sumPreviewDiv = document.getElementById('sumPreview');
 
-    // 辅助：计算所有有效数字值的总和
-    function computeTotalSum() {
+    // 获取所有有效条目
+    function getValidEntries() {
       const rows = document.querySelectorAll('.field-row');
-      let total = 0;
-      let validCount = 0;
-      const errors = [];
-      rows.forEach((row, idx) => {
+      const entries = [];
+      rows.forEach((row) => {
+        const keyInput = row.querySelector('.field-key');
         const valueInput = row.querySelector('.field-value-input');
-        if (valueInput) {
-          const rawValue = valueInput.value.trim();
-          if (rawValue === "") return;
-          const num = Number(rawValue);
-          if (isNaN(num)) {
-            errors.push(`第${idx+1}行值“${rawValue}”不是有效数字`);
-          } else {
-            total += num;
-            validCount++;
-          }
-        }
+        if (!keyInput || !valueInput) return;
+        const rawKey = keyInput.value.trim();
+        const rawValue = valueInput.value.trim();
+        if (rawValue === '') return;
+        const num = Number(rawValue);
+        if (isNaN(num)) return;
+        const key = rawKey === '' ? '未命名' : rawKey;
+        entries.push({ key, value: num });
       });
-      return { total, validCount, errors };
+      return entries;
     }
 
-    function formatTotal(total) {
-      if (Number.isInteger(total)) return total.toString();
-      return parseFloat(total.toFixed(4)).toString();
+    function formatValue(num) {
+      return Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(4)).toString();
     }
 
-    function updateSumPreview() {
-      const { total, validCount, errors } = computeTotalSum();
-      if (validCount === 0) {
-        sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: <span style="color:#b34e4e;">无有效数据</span><span style="font-size:0.75rem; margin-left:6px;">(请填写至少一个数字)</span>`;
-        return null;
-      } else {
-        const formatted = formatTotal(total);
-        sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: <strong style="font-size:1.2rem;">${formatted}</strong> kg CO₂e`;
-        return total;
+    function buildQRContent(entries) {
+      if (entries.length === 0) return '';
+      return entries.map(e => `${e.key}: ${formatValue(e.value)} kg CO₂e`).join('; ');
+    }
+
+    async function generateQRCode() {
+      const entries = getValidEntries();
+      if (entries.length === 0) {
+        alert('⚠️ 至少需要一个有效的数字值！');
+        return false;
       }
-    }
-
-    function getValidatedTotal() {
-      const { total, validCount, errors } = computeTotalSum();
-      if (validCount === 0) {
-        alert('⚠️ 至少需要一个有效的数字值！\n请填写数字（整数或小数），不能全为空或非数字。');
-        return null;
-      }
-      if (errors.length > 0) {
-        alert(`发现无效数字：\n${errors.join('\n')}\n\n有效数字部分已计算总和，请修正非数字项。`);
-      }
-      return total;
-    }
-
-    async function generateQRCodeWithTotal() {
-      const total = getValidatedTotal();
-      if (total === null) return false;
-      const formattedTotal = formatTotal(total);
-      const qrContent = `总量:${formattedTotal} kg CO₂e`;
-      sumPreviewDiv.innerHTML = `<i class="fas fa-qrcode"></i> 二维码内容: <strong style="font-size:1rem;">${qrContent}</strong>`;
+      const content = buildQRContent(entries);
       try {
         await new Promise((resolve, reject) => {
-          QRCode.toCanvas(qrCanvas, qrContent, { width: 240, margin: 2 }, (error) => {
+          QRCode.toCanvas(qrCanvas, content, { width: 240, margin: 2 }, (error) => {
             if (error) reject(error);
             else resolve();
           });
         });
-        qrCanvas.dataset.validContent = qrContent;
+        qrCanvas.dataset.validContent = content;
         return true;
       } catch (err) {
         console.error(err);
-        alert('二维码生成失败，请检查内容长度或刷新重试');
+        alert('二维码生成失败，内容可能过长，请精简条目。');
         return false;
       }
     }
@@ -644,15 +587,14 @@
         } catch(e) {}
       }
       if (!hasValid) {
-        alert('还没有生成二维码，请先点击「生成二维码」按钮！');
+        alert('还没有生成二维码，请先点击「生成二维码」！');
         return;
       }
       try {
         const dataURL = qrCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         const timestamp = new Date().getTime();
-        let suffix = qrCanvas.dataset.validContent ? qrCanvas.dataset.validContent.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_').slice(0, 30) : 'carbon';
-        link.download = `qrcode_${suffix}_${timestamp}.png`;
+        link.download = `carbon_detail_${timestamp}.png`;
         link.href = dataURL;
         link.click();
       } catch (err) {
@@ -660,20 +602,19 @@
       }
     }
 
-    // 动态表单管理
     function createFieldRow(keyVal = '', valueVal = '') {
       const rowDiv = document.createElement('div');
       rowDiv.className = 'field-row';
       
       const keyInput = document.createElement('input');
       keyInput.type = 'text';
-      keyInput.placeholder = '排放源';
+      keyInput.placeholder = '';
       keyInput.className = 'field-key';
       keyInput.value = keyVal;
       
       const valueInput = document.createElement('input');
       valueInput.type = 'text';
-      valueInput.placeholder = '碳排放量 (kg CO₂e)';
+      valueInput.placeholder = '';
       valueInput.className = 'field-value-input';
       valueInput.value = valueVal;
       
@@ -686,27 +627,15 @@
       delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         rowDiv.remove();
-        updateSumPreview();
         qrCanvas.dataset.validContent = '';
         const ctx = qrCanvas.getContext('2d');
         ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-        const hasValid = updateSumPreview();
-        if (!hasValid && hasValid !== null) {
-          sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: —— kg CO₂e`;
-        }
       });
       
       const onInputChange = () => {
-        const total = updateSumPreview();
         qrCanvas.dataset.validContent = '';
         const ctx = qrCanvas.getContext('2d');
         ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-        if (total === undefined || total === null) {
-          const { validCount } = computeTotalSum();
-          if (validCount === 0) {
-            sumPreviewDiv.innerHTML = `<i class="fas fa-chart-simple"></i> 当前总量: <span style="color:#b34e4e;">无有效数据</span>`;
-          }
-        }
       };
       
       keyInput.addEventListener('input', onInputChange);
@@ -721,33 +650,27 @@
     
     function initDefaultRows() {
       fieldsContainer.innerHTML = '';
-      const firstRow = createFieldRow('', '');
-      fieldsContainer.appendChild(firstRow);
-      updateSumPreview();
+      fieldsContainer.appendChild(createFieldRow('', ''));
       const ctx = qrCanvas.getContext('2d');
       ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
       qrCanvas.dataset.validContent = '';
     }
     
     function addNewRow() {
-      const newRow = createFieldRow('', '');
-      fieldsContainer.appendChild(newRow);
-      updateSumPreview();
+      fieldsContainer.appendChild(createFieldRow('', ''));
       qrCanvas.dataset.validContent = '';
       const ctx = qrCanvas.getContext('2d');
       ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
     }
     
     addFieldBtn.addEventListener('click', addNewRow);
-    generateQRBtn.addEventListener('click', async () => {
-      await generateQRCodeWithTotal();
-    });
+    generateQRBtn.addEventListener('click', generateQRCode);
     downloadQRBtn.addEventListener('click', downloadQR);
     
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        generateQRCodeWithTotal();
+        generateQRCode();
       }
     });
     
