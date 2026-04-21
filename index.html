@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>蔬果溯源二维码</title>
+  <title>蔬果溯源信息二维码</title>
   <!-- Google Fonts & Font Awesome 6 -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- QRCode.js -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
-    /* 保持原有冰蓝风格 */
     * {
       margin: 0;
       padding: 0;
@@ -67,7 +66,7 @@
     .dict-card {
       position: relative;
       z-index: 10;
-      max-width: 800px;
+      max-width: 850px;
       width: 100%;
       background: rgba(255, 255, 255, 0.4);
       backdrop-filter: blur(18px) saturate(180%);
@@ -230,7 +229,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.9rem;
-      max-height: 380px;
+      max-height: 420px;
       overflow-y: auto;
       padding-right: 0.2rem;
       margin-bottom: 1.2rem;
@@ -256,16 +255,17 @@
       border-color: #3b9eff;
     }
 
-    .field-key {
+    .field-type {
       flex: 1.2;
-      min-width: 100px;
+      min-width: 140px;
     }
 
     .field-value {
       flex: 2;
-      min-width: 140px;
+      min-width: 160px;
     }
 
+    .field-row select,
     .field-row input {
       width: 100%;
       padding: 0.75rem 1rem;
@@ -279,7 +279,17 @@
       color: #0a2e4a;
     }
 
-    .field-row input:focus {
+    .field-row select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="%231e88e5" d="M7 10l5 5 5-5z"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1rem;
+    }
+
+    .field-row input:focus,
+    .field-row select:focus {
       border-color: #1e88e5;
       box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.2);
     }
@@ -416,6 +426,15 @@
       z-index: 1;
     }
 
+    /* 选项单位提示小标签（可选） */
+    .input-hint {
+      font-size: 0.7rem;
+      color: #1a6ab0;
+      margin-top: 2px;
+      padding-left: 0.5rem;
+      opacity: 0.8;
+    }
+
     @media (max-width: 560px) {
       .dict-card {
         padding: 1.8rem 1.2rem 2rem;
@@ -473,16 +492,16 @@
     </a>
 
     <div class="icon-wrapper">
-      <i class="fas fa-cloud-sun"></i>
+      <i class="fas fa-apple-alt"></i>
     </div>
-    <h1>碳足迹 · 明细二维码</h1>
+    <h1>制作二维码</h1>
     <div class="sub">
-      <i class="fas fa-list-ul"></i> 排放源及数值 · 无总量
+      <i class="fas fa-seedling"></i> 选择类型 · 填写数值
     </div>
 
     <div class="form-section">
       <div class="fields-header">
-        <label><i class="fas fa-layer-group"></i> 碳排放项 (值必须为数字，单位kg CO₂e)</label>
+        <label><i class="fas fa-tasks"></i> 信息条目（下拉选择，填入对应值）</label>
         <button type="button" class="btn-add" id="addFieldBtn">
           <i class="fas fa-plus-circle"></i> 添加字段
         </button>
@@ -503,14 +522,36 @@
       <div class="qrcode-canvas-wrapper">
         <canvas id="qrCanvas" width="240" height="240" style="width: 200px; height: 200px;"></canvas>
       </div>
-      <!-- 预览区已完全移除 -->
     </div>
   </div>
 
   <script>
     (function(){
-      console.log('❄️🌊 冰蓝碳迹 · 明细二维码（无预览区）');
+      console.log('🍏 冰蓝果园 · 信息二维码 (下拉选项版)');
     })();
+
+    // ---------- 配置数据：下拉选项及其单位/输入提示 ----------
+    const FIELD_TYPES = [
+      { value: 'growth_story', label: '成长历程', unit: '', placeholder: '描述 (如: 春季萌芽)' },
+      { value: 'orchard_story', label: '果园故事', unit: '', placeholder: '故事简介' },
+      { value: 'best_period', label: '最佳食用期', unit: '', placeholder: '例如: 9月-10月' },
+      { value: 'growth_duration', label: '生长时长', unit: '天', placeholder: '天数' },
+      { value: 'sweetness', label: '甜度实测', unit: 'Brix', placeholder: '数值' },
+      { value: 'light_intensity', label: '光照强度', unit: 'lux', placeholder: '数值' },
+      { value: 'pesticide_record', label: '农药记录', unit: '', placeholder: '记录内容' }
+    ];
+
+    // 根据类型value获取单位
+    function getUnitByType(typeValue) {
+      const found = FIELD_TYPES.find(t => t.value === typeValue);
+      return found ? found.unit : '';
+    }
+
+    // 获取占位符
+    function getPlaceholderByType(typeValue) {
+      const found = FIELD_TYPES.find(t => t.value === typeValue);
+      return found ? found.placeholder : '请输入值';
+    }
 
     const fieldsContainer = document.getElementById('fieldsContainer');
     const addFieldBtn = document.getElementById('addFieldBtn');
@@ -518,38 +559,55 @@
     const downloadQRBtn = document.getElementById('downloadQRBtn');
     const qrCanvas = document.getElementById('qrCanvas');
 
-    // 获取所有有效条目
+    // 获取所有有效条目（非空值）
     function getValidEntries() {
       const rows = document.querySelectorAll('.field-row');
       const entries = [];
       rows.forEach((row) => {
-        const keyInput = row.querySelector('.field-key');
+        const typeSelect = row.querySelector('.field-type-select');
         const valueInput = row.querySelector('.field-value-input');
-        if (!keyInput || !valueInput) return;
-        const rawKey = keyInput.value.trim();
+        if (!typeSelect || !valueInput) return;
+        const typeValue = typeSelect.value;
         const rawValue = valueInput.value.trim();
-        if (rawValue === '') return;
-        const num = Number(rawValue);
-        if (isNaN(num)) return;
-        const key = rawKey === '' ? '未命名' : rawKey;
-        entries.push({ key, value: num });
+        if (rawValue === '') return; // 空值忽略
+        
+        const typeLabel = typeSelect.options[typeSelect.selectedIndex]?.text || typeValue;
+        const unit = getUnitByType(typeValue);
+        
+        // 对于甜度、光照强度等数字类型，尝试格式化（但保留原始输入，只做展示用）
+        let displayValue = rawValue;
+        if ((typeValue === 'sweetness' || typeValue === 'light_intensity' || typeValue === 'growth_duration') && !isNaN(parseFloat(rawValue))) {
+          // 如果是数字，保留合理精度（不做强制转换，保留用户输入格式，但去除多余空格）
+          const num = parseFloat(rawValue);
+          if (!isNaN(num)) {
+            displayValue = Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(4)).toString();
+          }
+        }
+        
+        entries.push({
+          type: typeValue,
+          label: typeLabel,
+          value: displayValue,
+          unit: unit,
+          rawValue: rawValue
+        });
       });
       return entries;
     }
 
-    function formatValue(num) {
-      return Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(4)).toString();
-    }
-
+    // 构建二维码内容字符串 (格式: 成长历程: 描述; 甜度实测: 15 Brix)
     function buildQRContent(entries) {
       if (entries.length === 0) return '';
-      return entries.map(e => `${e.key}: ${formatValue(e.value)} kg CO₂e`).join('; ');
+      return entries.map(e => {
+        const unitPart = e.unit ? ` ${e.unit}` : '';
+        return `${e.label}: ${e.value}${unitPart}`;
+      }).join('; ');
     }
 
     async function generateQRCode() {
       const entries = getValidEntries();
       if (entries.length === 0) {
-        alert('⚠️ 至少需要一个有效的数字值！');
+        alert('⚠️ 请至少填写一个有效条目！');
         return false;
       }
       const content = buildQRContent(entries);
@@ -594,7 +652,7 @@
         const dataURL = qrCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         const timestamp = new Date().getTime();
-        link.download = `carbon_detail_${timestamp}.png`;
+        link.download = `orchard_info_${timestamp}.png`;
         link.href = dataURL;
         link.click();
       } catch (err) {
@@ -602,21 +660,37 @@
       }
     }
 
-    function createFieldRow(keyVal = '', valueVal = '') {
+    // 创建一行 (带下拉框)
+    function createFieldRow(selectedType = 'growth_story', valueVal = '') {
       const rowDiv = document.createElement('div');
       rowDiv.className = 'field-row';
       
-      const keyInput = document.createElement('input');
-      keyInput.type = 'text';
-      keyInput.placeholder = '';
-      keyInput.className = 'field-key';
-      keyInput.value = keyVal;
+      // 下拉框
+      const selectEl = document.createElement('select');
+      selectEl.className = 'field-type-select';
+      FIELD_TYPES.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.value === selectedType) option.selected = true;
+        selectEl.appendChild(option);
+      });
       
+      // 输入框
       const valueInput = document.createElement('input');
       valueInput.type = 'text';
-      valueInput.placeholder = '';
       valueInput.className = 'field-value-input';
+      valueInput.placeholder = getPlaceholderByType(selectedType);
       valueInput.value = valueVal;
+      
+      // 根据选择更新占位符
+      selectEl.addEventListener('change', () => {
+        valueInput.placeholder = getPlaceholderByType(selectEl.value);
+        // 清空二维码（内容改变）
+        qrCanvas.dataset.validContent = '';
+        const ctx = qrCanvas.getContext('2d');
+        ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+      });
       
       const delBtn = document.createElement('button');
       delBtn.type = 'button';
@@ -638,10 +712,10 @@
         ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
       };
       
-      keyInput.addEventListener('input', onInputChange);
       valueInput.addEventListener('input', onInputChange);
+      // 下拉变化也会触发清空（已添加）
       
-      rowDiv.appendChild(keyInput);
+      rowDiv.appendChild(selectEl);
       rowDiv.appendChild(valueInput);
       rowDiv.appendChild(delBtn);
       
@@ -650,14 +724,15 @@
     
     function initDefaultRows() {
       fieldsContainer.innerHTML = '';
-      fieldsContainer.appendChild(createFieldRow('', ''));
+      // 默认添加一行，类型为“成长历程”
+      fieldsContainer.appendChild(createFieldRow('growth_story', ''));
       const ctx = qrCanvas.getContext('2d');
       ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
       qrCanvas.dataset.validContent = '';
     }
     
     function addNewRow() {
-      fieldsContainer.appendChild(createFieldRow('', ''));
+      fieldsContainer.appendChild(createFieldRow('growth_story', ''));
       qrCanvas.dataset.validContent = '';
       const ctx = qrCanvas.getContext('2d');
       ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
